@@ -15,6 +15,8 @@ import citrus.physics.nape.Nape;
 import citrus.physics.nape.NapeUtils;
 import citrus.physics.simple.SimpleCitrusSolver;
 
+import flash.display.DisplayObject;
+
 import flash.events.TimerEvent;
 
 import flash.geom.Point;
@@ -23,6 +25,13 @@ import flash.geom.Rectangle;
 import flash.utils.Timer;
 
 import hud.ChargeMeter;
+
+import maps.ElementsCollection;
+import maps.ItemsValidator;
+import maps.LayoutElements;
+import maps.LayoutPhysicsElement;
+
+import maps.MapsManager;
 
 import nape.callbacks.CbEvent;
 
@@ -52,6 +61,8 @@ public class PhysicsState extends StarlingState{
 
     private var _mobileHero:MobileHero;
 
+    private var _maps:MapsManager;
+
     private var _timerCollectible:Timer;
     private var _chargeTimer:Timer;
     private var _lifeTimer:Timer;
@@ -73,12 +84,14 @@ public class PhysicsState extends StarlingState{
         EngineSingleton.instance.signalsManager.addSignal(GameSignals.CHARGING, new Signal(), new Vector.<Function>());
         EngineSingleton.instance.signalsManager.addListenerToSignal(GameSignals.CHARGING, _toggleCharging);
 
+        _maps = new MapsManager();
+
         _lifeTimer = new Timer(1000);
         _lifeTimer.addEventListener(TimerEvent.TIMER, _drainLife);
         _lifeTimer.start();
 
         _timerCollectible = new Timer(250);
-        _timerCollectible.addEventListener(TimerEvent.TIMER, _collectibleCreation);
+//        _timerCollectible.addEventListener(TimerEvent.TIMER, _collectibleCreation);
         _timerCollectible.start();
 
         _chargeMeter = new ChargeMeter();
@@ -96,17 +109,41 @@ public class PhysicsState extends StarlingState{
         physics.space.listeners.add(_interactionListener);
         physics.space.listeners.add(_obstacleInteractionListener);
 
-        var platform:Platform = new Platform("p1", {x:5000, y:300, width:10000, height:60});
-        this.add(platform);
+        //var platform:Platform = new Platform("p1", {x:5000, y:300, width:10000, height:60});
+        //this.add(platform);
 
         _mobileHero = new MobileHero("hero", {x:40, y:150, width:80, height:75, jumpHeight:175, jumpAcceleration:5, view:new Quad(80,75,0xFF0000)});
         _mobileHero.chargeVO = _chargeVO;
         add(_mobileHero);
         _mobileHero.body.cbTypes.add(_ballCollisionType);
 
-        view.camera.setUp(_mobileHero, new Rectangle(0, 0, 10000, 400),null , new Point(.25, .05));
+        view.camera.setUp(_mobileHero, new Rectangle(0, 0, _maps.currentMap.length, _maps.currentMap.height),null , new Point(.25, .05));
 
         addChild(_chargeMeter);
+
+        addEventListener(Event.ENTER_FRAME, advance);
+    }
+
+    private function advance():void
+    {
+        var pos:int = Math.floor(view.camera.camPos.x)
+        var elements:ElementsCollection = _maps.currentMap.getElement(pos)
+        for( var i:uint = 0; i<elements.elements.length; i++)
+        {
+            var element:LayoutPhysicsElement = elements.elements[i];
+            var objToAdd:NapePhysicsObject = ItemsValidator.validateItem(element)
+            add(objToAdd);
+
+            if(element.type == LayoutElements.COLLECTIBLE)
+            {
+                objToAdd.body.cbTypes.add(_wallCollisionType);
+            }
+
+            if(element.type == LayoutElements.COLLECTIBLE_TYPE_1)
+            {
+                objToAdd.body.cbTypes.add(_wallCollisionType);
+            }
+        };
     }
 
 
@@ -116,7 +153,8 @@ public class PhysicsState extends StarlingState{
 
         if (random > 1) {
 
-            var obj:NapePhysicsObject = new NapePhysicsObject("o1", {x:_mobileHero.x + 500, y:0, width:10, height:10, view:new Quad(10,10,0xFF0000)});
+            var objSize:int = getCollectibleSize();
+            var obj:NapePhysicsObject = new NapePhysicsObject("o1", {x:_mobileHero.x + 500, y:0, width:objSize, height:objSize, view:new Quad(objSize,objSize,0xFF0000)});
             add(obj);
             obj.body.cbTypes.add(_wallCollisionType);
         }
@@ -127,6 +165,7 @@ public class PhysicsState extends StarlingState{
             {
                 add(wall.objects[i]);
                 wall.objects[i].body.cbTypes.add(_obstacleCollistionType);
+//                wall.objects[i].body.mass = 100;
             }
         }
 
@@ -156,9 +195,10 @@ public class PhysicsState extends StarlingState{
 
     private function _handleContact(collision:InteractionCallback):void
         {
-            _chargeVO.fillCharge(1);
+            var collectible:NapePhysicsObject = NapeUtils.CollisionGetOther(_mobileHero, collision);
+            _chargeVO.fillCharge(collectible.width / 10);
             _chargeMeter.updateFill(_chargeVO.chargeCurrentValue);
-            NapeUtils.CollisionGetOther(_mobileHero, collision).kill = true;
+            collectible.kill = true;
         }
 
     private function _handleObstacleContact(collision:InteractionCallback):void
@@ -182,13 +222,18 @@ public class PhysicsState extends StarlingState{
         }
     }
 
+    private function getCollectibleSize():int
+    {
+        return int(10+Math.random()*50)
+    }
+
     override public function destroy():void {
         _timerCollectible.stop();
         _chargeTimer.stop();
         _lifeTimer.stop();
 
         _lifeTimer.removeEventListener(TimerEvent.TIMER, _drainLife);
-        _timerCollectible.removeEventListener(TimerEvent.TIMER, _collectibleCreation);
+//        _timerCollectible.removeEventListener(TimerEvent.TIMER, _collectibleCreation);
         _chargeTimer.removeEventListener(TimerEvent.TIMER, _decreaseCharge);
 
         super.destroy();

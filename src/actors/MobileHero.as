@@ -68,7 +68,7 @@ public class MobileHero extends Hero {
             }
             else {
                 if (chargeVO.chargeCurrentValue > 0) {
-                    this.body.mass = 6;
+                    this.body.mass = 50;
                     velocity.x = 200;
                     charging = true;
                 }

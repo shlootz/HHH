@@ -16,9 +16,9 @@ public class Map1 extends Map{
         length = 10000;
 
         addFloor();
-        addCollectibles();
+//        addCollectibles();
         addWalls();
-        addCars();
+//        addCars();
     }
 
     private function addFloor():void
@@ -51,7 +51,7 @@ public class Map1 extends Map{
         {
             var collection:ElementsCollection = new ElementsCollection();
             var pos:int = 600+100*i;
-            var element:LayoutPhysicsElement = new LayoutPhysicsElement("w"+i, LayoutElements.WALL, {x:400+pos, y:0, width:100, height:100, brickW:20, brickH:20, view:new Quad(100,100,0xFF0000)})
+            var element:LayoutPhysicsElement = new LayoutPhysicsElement("w"+i, LayoutElements.WALL, {x:400+pos, y:300})
             collection.elements.push(element);
             if(!distribution[pos])
                 distribution[pos] = collection;
@@ -62,7 +62,7 @@ public class Map1 extends Map{
     {
         for(var i:uint = 0; i<100; i++) {
             var collection:ElementsCollection = new ElementsCollection();
-            var pos:int = 600 + 100 * i;
+            var pos:int = 1150 + 100 * i;
             var element:LayoutPhysicsElement = new LayoutPhysicsElement("car", LayoutElements.CAR, {x: 800, y: 200, nmbrNuggets: 5, view: new Quad(50, 50, 0xFF0000), backWheelArt: new Quad(50, 50, 0xFF0000), frontWheelArt: new Quad(50, 50, 0xFF0000), particleArt: new Quad(5, 5, 0xFF0000)});
         }
     }

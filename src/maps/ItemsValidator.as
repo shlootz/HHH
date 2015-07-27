@@ -30,8 +30,8 @@ public class ItemsValidator {
                 break;
 
             case LayoutElements.WALL:
-//                    var wall:Wall = new Wall()
-                trace("WALL");
+                    var wall:Wall = new Wall("wall", element.params);
+                    toReturn = wall;
 
                 break;
 

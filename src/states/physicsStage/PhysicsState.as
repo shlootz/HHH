@@ -42,6 +42,7 @@ import nape.callbacks.InteractionListener;
 import nape.callbacks.InteractionType;
 
 import nape.geom.Vec2;
+import nape.phys.Body;
 import nape.space.Space;
 
 import obstacles.House;
@@ -109,9 +110,6 @@ public class PhysicsState extends StarlingState{
         physics.space.listeners.add(_interactionListener);
         physics.space.listeners.add(_obstacleInteractionListener);
 
-        //var platform:Platform = new Platform("p1", {x:5000, y:300, width:10000, height:60});
-        //this.add(platform);
-
         _mobileHero = new MobileHero("hero", {x:40, y:150, width:80, height:75, jumpHeight:175, jumpAcceleration:5, view:new Quad(80,75,0xFF0000)});
         _mobileHero.chargeVO = _chargeVO;
         add(_mobileHero);
@@ -143,39 +141,12 @@ public class PhysicsState extends StarlingState{
             {
                 objToAdd.body.cbTypes.add(_wallCollisionType);
             }
+
+            if(element.type == LayoutElements.WALL)
+            {
+                objToAdd.body.cbTypes.add(_obstacleCollistionType);
+            }
         };
-    }
-
-
-    private function _collectibleCreation(tEvt:TimerEvent):void {
-
-        var random:uint = Math.random() * 5;
-
-        if (random > 1) {
-
-            var objSize:int = getCollectibleSize();
-            var obj:NapePhysicsObject = new NapePhysicsObject("o1", {x:_mobileHero.x + 500, y:0, width:objSize, height:objSize, view:new Quad(objSize,objSize,0xFF0000)});
-            add(obj);
-            obj.body.cbTypes.add(_wallCollisionType);
-        }
-
-        if ( random > 2) {
-            var wall:Wall = new Wall(_mobileHero.x + 300, 200, 2, 3, 30, 30, 10);
-            for(var i:uint = 0; i<wall.objects.length; i++)
-            {
-                add(wall.objects[i]);
-                wall.objects[i].body.cbTypes.add(_obstacleCollistionType);
-//                wall.objects[i].body.mass = 100;
-            }
-        }
-
-        if (random > 3) {
-            var house:House = new House(_mobileHero.x + 300, 200);
-            for(var j:uint = 0; j<house.objects.length; j++)
-            {
-//                add(house.objects[j]);
-            }
-        }
     }
 
     private function _decreaseCharge(tEvt:TimerEvent):void {

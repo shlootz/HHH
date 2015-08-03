@@ -158,9 +158,9 @@
     <mapping directory="" vcs="" />
   </component>
   <component name="libraryTable">
-    <library name="CEV3-1-10-ALL" type="flex">
+    <library name="CEV3-1-11-ALL" type="flex">
       <CLASSES>
-        <root url="jar://$USER_HOME$/Citrus-Engine/bin/CEV3-1-10-ALL.swc!/" />
+        <root url="jar://$USER_HOME$/Citrus-Engine/bin/CEV3-1-11-ALL.swc!/" />
       </CLASSES>
       <JAVADOC />
       <SOURCES />

@@ -7,6 +7,7 @@ public class LayoutElements {
     public static var PLATFORM:String = "Platform";
 
     public static var WALL:String = "Wall";
+    public static var NON_DESTRUCTIBLE_WALL:String = "non_destructible_Wall";
 
     public static var CAR:String = "Car";
 

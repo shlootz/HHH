@@ -3,6 +3,8 @@
  */
 package {
 
+import citrus.core.CitrusEngine;
+
 import signals.ISignalsHub;
 import signals.SignalsHub;
 
@@ -10,6 +12,8 @@ public class EngineSingleton {
 
     private static var _instance:EngineSingleton;
     private static var _signalsManager:SignalsHub;
+
+    public static var citrusCore:CitrusEngine;
 
     public function EngineSingleton(s:SingletonEnforcer) {
         if (s == null) throw new Error("Singleton, use MySingleton.instance");

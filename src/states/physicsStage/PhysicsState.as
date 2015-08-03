@@ -61,6 +61,7 @@ public class PhysicsState extends StarlingState{
     private var _chargeVO:ChargeVO;
 
     private var _mobileHero:MobileHero;
+    private var _cleaner:NapePhysicsObject;
 
     private var _maps:MapsManager;
 
@@ -70,9 +71,12 @@ public class PhysicsState extends StarlingState{
 
     private var _interactionListener:InteractionListener;
     private var _obstacleInteractionListener:InteractionListener;
-    private var _wallCollisionType:CbType=new CbType();
-    private var _ballCollisionType:CbType=new CbType();
-    private var _obstacleCollistionType:CbType = new CbType();
+    private var _cleanerInteractionListener:InteractionListener;
+
+//    private var _wallCollisionType:CbType=new CbType();
+//    private var _ballCollisionType:CbType=new CbType();
+//    private var _obstacleCollistionType:CbType = new CbType();
+//    private var _cleanerCollisionType:CbType = new CbType();
 
     public function PhysicsState() {
         super();
@@ -82,6 +86,7 @@ public class PhysicsState extends StarlingState{
     {
         super.initialize();
 
+        EngineSingleton.citrusCore = _ce;
         EngineSingleton.instance.signalsManager.addSignal(GameSignals.CHARGING, new Signal(), new Vector.<Function>());
         EngineSingleton.instance.signalsManager.addListenerToSignal(GameSignals.CHARGING, _toggleCharging);
 
@@ -101,19 +106,26 @@ public class PhysicsState extends StarlingState{
         _chargeVO = new ChargeVO();
 
         var physics:Nape = new Nape("myNape");
-        _interactionListener = new InteractionListener(CbEvent.BEGIN,InteractionType.COLLISION,_wallCollisionType,_ballCollisionType,_handleContact);
-        _obstacleInteractionListener = new InteractionListener(CbEvent.BEGIN,InteractionType.COLLISION,_obstacleCollistionType,_ballCollisionType,_handleObstacleContact);
+        _interactionListener = new InteractionListener(CbEvent.BEGIN,InteractionType.COLLISION,Collisions.WALL_COLLISION_TYPE,Collisions.BALL_COLLISION_TYPE,_handleContact);
+        _obstacleInteractionListener = new InteractionListener(CbEvent.BEGIN,InteractionType.COLLISION,Collisions.OBSTACLE_COLLISION_TYPE,Collisions.BALL_COLLISION_TYPE,_handleObstacleContact);
+        _cleanerInteractionListener = new InteractionListener(CbEvent.BEGIN,InteractionType.COLLISION,Collisions.OBSTACLE_COLLISION_TYPE,Collisions.CLEANER_COLLISION_TYPE,_handleCleanerContact);
 
         this.add(physics);
         physics.visible = true;
         physics.gravity = new Vec2(0,350);
         physics.space.listeners.add(_interactionListener);
         physics.space.listeners.add(_obstacleInteractionListener);
+        physics.space.listeners.add(_cleanerInteractionListener);
 
         _mobileHero = new MobileHero("hero", {x:40, y:150, width:80, height:75, jumpHeight:175, jumpAcceleration:5, view:new Quad(80,75,0xFF0000)});
         _mobileHero.chargeVO = _chargeVO;
         add(_mobileHero);
-        _mobileHero.body.cbTypes.add(_ballCollisionType);
+        _mobileHero.body.cbTypes.add(Collisions.BALL_COLLISION_TYPE);
+
+        _cleaner = new NapePhysicsObject("cleaner", {x:20, y:150, width:100, height: 200});
+        add(_cleaner);
+        _cleaner.body.cbTypes.add(Collisions.CLEANER_COLLISION_TYPE);
+        _cleaner.body.mass = 100;
 
         view.camera.setUp(_mobileHero, new Rectangle(0, 0, _maps.currentMap.length, _maps.currentMap.height),null , new Point(.25, .05));
 
@@ -124,29 +136,19 @@ public class PhysicsState extends StarlingState{
 
     private function advance():void
     {
-        var pos:int = Math.floor(view.camera.camPos.x)
+        var pos:int = view.camera.camPos.x;
+
         var elements:ElementsCollection = _maps.currentMap.getElement(pos)
+
         for( var i:uint = 0; i<elements.elements.length; i++)
         {
             var element:LayoutPhysicsElement = elements.elements[i];
-            var objToAdd:NapePhysicsObject = ItemsValidator.validateItem(element)
-            add(objToAdd);
-
-            if(element.type == LayoutElements.COLLECTIBLE)
-            {
-                objToAdd.body.cbTypes.add(_wallCollisionType);
-            }
-
-            if(element.type == LayoutElements.COLLECTIBLE_TYPE_1)
-            {
-                objToAdd.body.cbTypes.add(_wallCollisionType);
-            }
-
-            if(element.type == LayoutElements.WALL)
-            {
-                objToAdd.body.cbTypes.add(_obstacleCollistionType);
-            }
+            ItemsValidator.validateItem(element);
+//            var objToAdd:NapePhysicsObject = ItemsValidator.validateItem(element)
+//            add(objToAdd);
         };
+
+        _cleaner.body.position.x = _mobileHero.body.position.x - 500;
     }
 
     private function _decreaseCharge(tEvt:TimerEvent):void {
@@ -179,6 +181,11 @@ public class PhysicsState extends StarlingState{
         } else{
             _mobileHero.bounceBack();
         }
+    }
+
+    private function _handleCleanerContact(collision:InteractionCallback):void
+    {
+        NapeUtils.CollisionGetOther(_mobileHero, collision).kill = true;
     }
 
     private function _toggleCharging(type:String, obj:Object):void

@@ -11,6 +11,9 @@
             <entry library-id="a493aaac-47c8-489f-8aa4-2b5d72433b88">
               <dependency linkage="Merged" />
             </entry>
+            <entry library-name="CEV3-1-11-ALL" library-level="project">
+              <dependency linkage="Merged" />
+            </entry>
           </entries>
           <sdk name="air18_sdk_mac" />
         </dependencies>
@@ -41,6 +44,7 @@
         <SOURCES />
       </library>
     </orderEntry>
+    <orderEntry type="library" exported="" name="CEV3-1-11-ALL" level="project" />
   </component>
 </module>
 
